@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { sprintsAPI } from "../services/api";
+import Reveal from "../components/Reveal";
 
 function CreateSprintModal({ onClose, onCreated }) {
   const [form, setForm] = useState({ name: "", start_date: "", end_date: "", notes: "" });
@@ -95,44 +96,50 @@ export default function SprintsPage({ navigate }) {
       </div>
 
       <div className="page-body">
-        <div className="tabs">
-          {["all", "active", "completed"].map(s => (
-            <div key={s} className={`tab ${statusFilter === s ? "active" : ""}`} onClick={() => setStatusFilter(s)}>
-              {s.charAt(0).toUpperCase() + s.slice(1)}
-            </div>
-          ))}
-        </div>
+        <Reveal delay={100} width="100%">
+          <div className="tabs">
+            {["all", "active", "completed"].map(s => (
+              <div key={s} className={`tab ${statusFilter === s ? "active" : ""}`} onClick={() => setStatusFilter(s)}>
+                {s.charAt(0).toUpperCase() + s.slice(1)}
+              </div>
+            ))}
+          </div>
+        </Reveal>
 
         {loading ? (
           <div className="loading"><div className="loading-spinner" /></div>
         ) : sprints.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">🏃</div>
-            <div className="empty-title">No sprints yet</div>
-            <div className="empty-text">Create your first sprint to start planning your study sessions.</div>
-            <button className="btn btn-primary" onClick={() => setShowModal(true)}>Create Sprint</button>
-          </div>
+          <Reveal delay={200} width="100%">
+            <div className="empty-state">
+              <div className="empty-icon">🏃</div>
+              <div className="empty-title">No sprints yet</div>
+              <div className="empty-text">Create your first sprint to start planning your study sessions.</div>
+              <button className="btn btn-primary" onClick={() => setShowModal(true)}>Create Sprint</button>
+            </div>
+          </Reveal>
         ) : (
           <div className="grid-3">
-            {sprints.map(sprint => {
+            {sprints.map((sprint, index) => {
               const start = new Date(sprint.start_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
               const end = new Date(sprint.end_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
               return (
-                <div key={sprint.sprint_id} className={`sprint-card ${sprint.status}`}
-                  onClick={() => navigate("sprint-detail", { sprintId: sprint.sprint_id })}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
-                    <div className="sprint-name">{sprint.name}</div>
-                    <span className={`badge badge-${sprint.status === "active" ? "in_progress" : sprint.status === "completed" ? "completed" : "pending"}`}>
-                      {sprint.status}
-                    </span>
+                <Reveal key={sprint.sprint_id} delay={index * 100} width="100%">
+                  <div className={`sprint-card ${sprint.status}`}
+                    onClick={() => navigate("sprint-detail", { sprintId: sprint.sprint_id })}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
+                      <div className="sprint-name">{sprint.name}</div>
+                      <span className={`badge badge-${sprint.status === "active" ? "in_progress" : sprint.status === "completed" ? "completed" : "pending"}`}>
+                        {sprint.status}
+                      </span>
+                    </div>
+                    <div className="sprint-dates">📅 {start} → {end} ({sprint.duration_days} days)</div>
+                    {sprint.notes && <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{sprint.notes}</div>}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+                      <button className="btn btn-secondary btn-sm" onClick={() => navigate("sprint-detail", { sprintId: sprint.sprint_id })}>View →</button>
+                      <button className="btn btn-danger btn-sm" onClick={e => handleDelete(sprint.sprint_id, e)}>Delete</button>
+                    </div>
                   </div>
-                  <div className="sprint-dates">📅 {start} → {end} ({sprint.duration_days} days)</div>
-                  {sprint.notes && <div style={{ fontSize: 12, color: "var(--gray-400)", marginBottom: 10, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{sprint.notes}</div>}
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
-                    <button className="btn btn-secondary btn-sm" onClick={() => navigate("sprint-detail", { sprintId: sprint.sprint_id })}>View →</button>
-                    <button className="btn btn-danger btn-sm" onClick={e => handleDelete(sprint.sprint_id, e)}>Delete</button>
-                  </div>
-                </div>
+                </Reveal>
               );
             })}
           </div>

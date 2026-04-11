@@ -17,7 +17,7 @@ export default function Layout({ children, page, navigate }) {
       <aside className="sidebar">
         <div className="sidebar-logo">
           <h1>⚡ SprintWise</h1>
-          <span>AI Productivity Platform</span>
+          <span>AI Productivity</span>
         </div>
 
         <nav className="sidebar-nav">
@@ -35,17 +35,22 @@ export default function Layout({ children, page, navigate }) {
 
         <div className="sidebar-footer">
           <div className="sidebar-user">{user?.full_name}</div>
-          <div>{user?.email}</div>
-          <div
-            style={{ marginTop: 10, cursor: "pointer", color: "rgba(255,255,255,0.5)", fontSize: 12 }}
+          <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 12 }}>{user?.email}</div>
+          <button
+            className="btn btn-secondary btn-sm"
+            style={{ width: "100%" }}
             onClick={logout}
           >
             Sign out →
-          </div>
+          </button>
         </div>
       </aside>
 
-      <main className="main-content">{children}</main>
+      <main className="main-content">
+        <div key={page} className="page-view">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }

@@ -6,9 +6,10 @@ from flask_jwt_extended import (
     create_access_token, create_refresh_token,
     jwt_required, get_jwt_identity
 )
-from datetime import datetime
+from datetime import datetime, timedelta
 from app import db
 from app.models import User
+from app.services.mail_service import MailService
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -41,18 +42,81 @@ def register():
         weekly_study_target_hours=float(data.get("weekly_study_target_hours", 20.0)),
     )
     user.set_password(data["password"])
+    
+    # Generate and "send" OTP
+    otp = MailService.generate_otp()
+    user.otp_code = otp
+    user.otp_expiry = datetime.utcnow() + timedelta(minutes=10)
+    
     db.session.add(user)
+    db.session.commit()
+
+    MailService.send_otp(user.email, otp)
+
+    return jsonify({
+        "message": "Account created. Please verify your email.",
+        "email": user.email,
+        "is_verified": False
+    }), 201
+
+
+@auth_bp.post("/verify-otp")
+def verify_otp():
+    data = request.get_json(silent=True) or {}
+    email = data.get("email", "").lower().strip()
+    code = data.get("code", "").strip()
+
+    if not email or not code:
+        return jsonify({"error": "Email and code required"}), 400
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    if user.is_verified:
+        return jsonify({"message": "Email already verified"}), 200
+
+    if user.otp_code != code:
+        return jsonify({"error": "Invalid verification code"}), 400
+
+    if user.otp_expiry < datetime.utcnow():
+        return jsonify({"error": "Code expired. Please request a new one."}), 400
+
+    user.is_verified = True
+    user.otp_code = None
+    user.otp_expiry = None
     db.session.commit()
 
     access_token = create_access_token(identity=str(user.user_id))
     refresh_token = create_refresh_token(identity=str(user.user_id))
 
     return jsonify({
-        "message": "Account created successfully",
+        "message": "Email verified successfully",
         "user": user.to_dict(),
         "access_token": access_token,
         "refresh_token": refresh_token,
-    }), 201
+    }), 200
+
+
+@auth_bp.post("/resend-otp")
+def resend_otp():
+    data = request.get_json(silent=True) or {}
+    email = data.get("email", "").lower().strip()
+
+    if not email:
+        return jsonify({"error": "Email required"}), 400
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    otp = MailService.generate_otp()
+    user.otp_code = otp
+    user.otp_expiry = datetime.utcnow() + timedelta(minutes=10)
+    db.session.commit()
+
+    MailService.send_otp(user.email, otp)
+    return jsonify({"message": "New verification code sent"}), 200
 
 
 @auth_bp.post("/login")
@@ -67,6 +131,13 @@ def login():
     user = User.query.filter_by(email=email).first()
     if not user or not user.check_password(password):
         return jsonify({"error": "Invalid credentials"}), 401
+
+    if not user.is_verified:
+        return jsonify({
+            "error": "Account not verified",
+            "needs_verification": True,
+            "email": user.email
+        }), 403
 
     user.last_login = datetime.utcnow()
     db.session.commit()

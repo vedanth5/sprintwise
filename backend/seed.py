@@ -55,7 +55,7 @@ def seed():
     with app.app_context():
         db.drop_all()
         db.create_all()
-        print("✓ Database reset")
+        print("Database reset")
 
         # ── Demo User ──
         user = User(
@@ -64,11 +64,12 @@ def seed():
             academic_level="undergraduate",
             weekly_study_target_hours=25.0,
             subjects=json.dumps(SUBJECTS),
+            is_verified=True,
         )
         user.set_password("demo1234")
         db.session.add(user)
         db.session.flush()
-        print(f"✓ Created demo user: demo@sprintwise.com / demo1234")
+        print(f"Created demo user: demo@sprintwise.com / demo1234")
 
         # ── Completed Sprints (3 historical) ──
         today = date.today()
@@ -135,7 +136,7 @@ def seed():
         # Compute analytics for historical sprints
         for sprint in sprint_history:
             AnalyticsEngine.compute_sprint_metrics(sprint.sprint_id, user.user_id, force_refresh=True)
-        print("✓ Created 3 completed historical sprints with analytics")
+        print("Created 3 completed historical sprints with analytics")
 
         # ── Active Sprint ──
         active_start = today - timedelta(days=3)
@@ -191,7 +192,7 @@ def seed():
 
         # Compute active sprint metrics
         AnalyticsEngine.compute_sprint_metrics(active.sprint_id, user.user_id, force_refresh=True)
-        print(f"✓ Created active sprint with {len(active_tasks)} tasks (7 completed, 1 in-progress)")
+        print(f"Created active sprint with {len(active_tasks)} tasks (7 completed, 1 in-progress)")
 
         print("\n" + "="*50)
         print("  SEED COMPLETE")

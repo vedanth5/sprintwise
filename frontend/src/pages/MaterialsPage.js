@@ -177,6 +177,64 @@ const AddToSprintModal = ({ material, onClose }) => {
   );
 };
 
+// ─── File Drop Zone ────────────────────────────────────────────────────────
+const FileDropZone = ({ onFileSelect, selectedFile, onClear }) => {
+  const [dragging, setDragging] = useState(false);
+
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') setDragging(true);
+    else if (e.type === 'dragleave') setDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      onFileSelect(e.dataTransfer.files[0]);
+    }
+  };
+
+  if (selectedFile) {
+    return (
+      <div className="upload-preview">
+        <div style={{ fontSize: '24px' }}>📄</div>
+        <div className="upload-preview-info">
+          <span className="upload-filename">{selectedFile.name}</span>
+          <span className="upload-filesize">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</span>
+        </div>
+        <button className="btn btn-secondary btn-sm" onClick={onClear} style={{ padding: '4px 8px' }}>✕</button>
+      </div>
+    );
+  }
+
+  return (
+    <div 
+      className={`upload-dropzone ${dragging ? 'dragging' : ''}`}
+      onDragEnter={handleDrag}
+      onDragLeave={handleDrag}
+      onDragOver={handleDrag}
+      onDrop={handleDrop}
+      onClick={() => document.getElementById('fileInput').click()}
+    >
+      <input 
+        id="fileInput"
+        type="file" 
+        accept="application/pdf" 
+        style={{ display: 'none' }} 
+        onChange={e => onFileSelect(e.target.files[0])} 
+      />
+      <div className="upload-dropzone-icon">📤</div>
+      <div className="upload-dropzone-text">
+        <span className="upload-dropzone-title">Click or Drop PDF here</span>
+        <span className="upload-dropzone-sub">Maximum file size: 20MB</span>
+      </div>
+    </div>
+  );
+};
+
 // ─── Main Page ───────────────────────────────────────────────────────────────
 const MaterialsPage = () => {
   const [materials, setMaterials] = useState([]);
@@ -199,7 +257,7 @@ const MaterialsPage = () => {
   };
 
   const handleUpload = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!file) return;
     const formData = new FormData();
     formData.append('file', file);
@@ -222,7 +280,7 @@ const MaterialsPage = () => {
     finally { setLoadingDetail(false); }
   };
 
-  const sectionTitle = (text, color = 'var(--blue-light)') => (
+  const sectionTitle = (text, color = 'var(--accent)') => (
     <h4 style={{ color, margin: '0 0 16px 0', fontSize: '13px', fontWeight: '700', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{text}</h4>
   );
 
@@ -235,25 +293,28 @@ const MaterialsPage = () => {
       <div className="page-header">
         <div>
           <h2>Study Materials</h2>
-          <p>Upload PDFs to instantly generate summaries, mindmaps, and study questions using AI.</p>
+          <p>Instantly generate AI insights from your lecture notes and PDFs.</p>
         </div>
       </div>
 
-      <div className="page-body grid-2" style={{ gridTemplateColumns: '320px 1fr', alignItems: 'start', gap: '20px' }}>
+      <div className="page-body grid-2" style={{ gridTemplateColumns: 'minmax(320px, 1fr) 2fr', alignItems: 'start', gap: '24px' }}>
 
         {/* ── Left: Upload + Library ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div className="card">
-            {sectionTitle('📤 Upload New PDF')}
-            <form onSubmit={handleUpload}>
-              <div style={{ marginBottom: '12px' }}>
-                <input type="file" accept="application/pdf" onChange={e => setFile(e.target.files[0])} className="form-input" style={{ width: '100%' }} />
-              </div>
-              {error && <div className="form-error" style={{ marginBottom: '10px' }}>{error}</div>}
-              <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={!file || uploading}>
-                {uploading ? '⏳ Processing...' : '🚀 Upload & Process'}
-              </button>
-            </form>
+            {sectionTitle('📤 Upload')}
+            <div style={{ marginBottom: '16px' }}>
+              <FileDropZone onFileSelect={setFile} selectedFile={file} onClear={() => setFile(null)} />
+            </div>
+            {error && <div className="auth-error" style={{ marginBottom: '16px', padding: '8px' }}>{error}</div>}
+            <button 
+              className="btn btn-primary" 
+              style={{ width: '100%' }} 
+              disabled={!file || uploading}
+              onClick={handleUpload}
+            >
+              {uploading ? '⏳ Processing PDF...' : '🚀 Start AI Analysis'}
+            </button>
           </div>
 
           <div className="card">

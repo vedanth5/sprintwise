@@ -18,6 +18,9 @@ class User(db.Model):
     subjects = db.Column(db.Text, nullable=True)  # JSON array
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     last_login = db.Column(db.DateTime, nullable=True)
+    is_verified = db.Column(db.Boolean, nullable=False, default=False)
+    otp_code = db.Column(db.String(6), nullable=True)
+    otp_expiry = db.Column(db.DateTime, nullable=True)
 
     sprints = db.relationship("Sprint", backref="user", lazy=True, cascade="all, delete-orphan")
     recommendations = db.relationship("Recommendation", backref="user", lazy=True, cascade="all, delete-orphan")
@@ -37,6 +40,7 @@ class User(db.Model):
             "academic_level": self.academic_level,
             "weekly_study_target_hours": self.weekly_study_target_hours,
             "subjects": json.loads(self.subjects) if self.subjects else [],
+            "is_verified": self.is_verified,
             "created_at": self.created_at.isoformat(),
         }
 

@@ -96,18 +96,24 @@ function TaskCard({ task, onUpdate, onDelete }) {
         <div className="task-meta">
           <span className="task-subject">{task.subject}</span>
           <span className={`badge badge-${task.priority}`}>{task.priority}</span>
-          <span className="task-time">Est: {task.estimated_minutes}m</span>
-          {totalMins > 0 && <span className="task-time" style={{ color: "var(--blue)" }}>Logged: {totalMins}m</span>}
-          {activeLog && <span style={{ fontSize: 11, color: "var(--red)", fontWeight: 600 }}>⏱ {fmt(elapsed)}</span>}
+          <span className="task-time">⏳ {task.estimated_minutes}m</span>
+          {totalMins > 0 && <span className="task-time" style={{ color: "var(--blue)" }}>📈 Logged: {totalMins}m</span>}
+          {activeLog && <span className="task-time" style={{ color: "var(--red)", fontWeight: 700 }}>⏱ {fmt(elapsed)}</span>}
         </div>
       </div>
       <div className="task-actions">
         {task.status !== "completed" && (
           activeLog
-            ? <button className="task-timer-btn stop" onClick={stopTimer}>⏹ Stop</button>
-            : <button className="task-timer-btn start" onClick={startTimer}>▶ Start</button>
+            ? <button className="task-timer-btn stop" onClick={stopTimer}>Stop</button>
+            : <button className="task-timer-btn start" onClick={startTimer}>Start</button>
         )}
-        <button className="btn btn-danger btn-sm" onClick={() => onDelete(task.task_id)}>✕</button>
+        <button 
+          className="btn btn-secondary btn-sm" 
+          onClick={() => onDelete(task.task_id)}
+          style={{ padding: '6px 10px', color: 'var(--text-muted)' }}
+        >
+          ✕
+        </button>
       </div>
     </div>
   );
@@ -174,7 +180,7 @@ export default function SprintDetail({ sprintId, navigate }) {
           {sprint.status === "active" && (
             <>
               <button className="btn btn-primary" onClick={() => setShowAdd(true)}>+ Add Task</button>
-              <button className="btn btn-success" onClick={handleComplete}>✓ Complete Sprint</button>
+              <button className="btn btn-success" onClick={handleComplete}>Finish Sprint</button>
             </>
           )}
         </div>

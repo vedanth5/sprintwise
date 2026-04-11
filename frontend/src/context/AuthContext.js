@@ -33,12 +33,21 @@ export function AuthProvider({ children }) {
   };
 
   const register = async (formData) => {
-    const res = await authAPI.register(formData);
+    await authAPI.register(formData);
+    // We don't log in yet; the component will handle the redirection to OTP
+  };
+
+  const verifyOtp = async (email, code) => {
+    const res = await authAPI.verifyOtp({ email, code });
     const { access_token, refresh_token, user: u } = res.data;
     localStorage.setItem("access_token", access_token);
     localStorage.setItem("refresh_token", refresh_token);
     setUser(u);
     return u;
+  };
+
+  const resendOtp = async (email) => {
+    await authAPI.resendOtp({ email });
   };
 
   const logout = () => {
@@ -50,7 +59,7 @@ export function AuthProvider({ children }) {
   const updateUser = (updatedUser) => setUser(updatedUser);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, verifyOtp, resendOtp, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
