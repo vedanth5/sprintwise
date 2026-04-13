@@ -35,23 +35,27 @@ def register():
     if User.query.filter_by(email=data["email"].lower()).first():
         return jsonify({"error": "Email already registered"}), 409
 
-    user = User(
-        email=data["email"].lower().strip(),
-        full_name=data["full_name"].strip(),
-        academic_level=data.get("academic_level", "undergraduate"),
-        weekly_study_target_hours=float(data.get("weekly_study_target_hours", 20.0)),
-    )
-    user.set_password(data["password"])
-    
-    # Generate and "send" OTP
-    otp = MailService.generate_otp()
-    user.otp_code = otp
-    user.otp_expiry = datetime.utcnow() + timedelta(minutes=10)
-    
-    db.session.add(user)
-    db.session.commit()
+    try:
+        user = User(
+            email=data["email"].lower().strip(),
+            full_name=data["full_name"].strip(),
+            academic_level=data.get("academic_level", "undergraduate"),
+            weekly_study_target_hours=float(data.get("weekly_study_target_hours", 20.0)),
+        )
+        user.set_password(data["password"])
+        
+        # Generate and "send" OTP
+        otp = MailService.generate_otp()
+        user.otp_code = otp
+        user.otp_expiry = datetime.utcnow() + timedelta(minutes=10)
+        
+        db.session.add(user)
+        db.session.commit()
 
-    MailService.send_otp(user.email, otp)
+        MailService.send_otp(user.email, otp)
+    except Exception as e:
+        print(f"❌ REGISTRATION ERROR: {str(e)}")
+        return jsonify({"error": "Internal server error during registration", "details": str(e)}), 500
 
     return jsonify({
         "message": "Account created. Please verify your email.",
