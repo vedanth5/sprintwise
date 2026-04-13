@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from flask_cors import CORS
+from sqlalchemy import text
 import os
 
 db = SQLAlchemy()
@@ -62,7 +63,7 @@ def create_app(config=None):
         try:
             db.create_all()
             # Basic connectivity check
-            db.session.execute(db.text("SELECT 1"))
+            db.session.execute(text("SELECT 1"))
             print("✅ Database connection successful and tables verified.")
         except Exception as e:
             print(f"❌ DATABASE CONNECTION ERROR: {str(e)}")
