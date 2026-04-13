@@ -79,6 +79,9 @@ body {
   color: var(--text-primary);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "cv02", "cv05", "cv11";
   overflow-x: hidden;
 }
 
@@ -101,6 +104,7 @@ p { color: var(--text-secondary); }
 .text-gradient {
   background: linear-gradient(135deg, #FFF 0%, #AAA 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
