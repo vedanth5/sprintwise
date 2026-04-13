@@ -57,8 +57,15 @@ def create_app(config=None):
     app.register_blueprint(dashboard_bp, url_prefix="/api/v1/dashboard")
     app.register_blueprint(materials_bp, url_prefix="/api/v1/materials")
 
-    # Create tables on startup (dev convenience)
+    # Create tables & Check connectivity
     with app.app_context():
-        db.create_all()
+        try:
+            db.create_all()
+            # Basic connectivity check
+            db.session.execute(db.text("SELECT 1"))
+            print("✅ Database connection successful and tables verified.")
+        except Exception as e:
+            print(f"❌ DATABASE CONNECTION ERROR: {str(e)}")
+            # Don't crash the app, but log it clearly
 
     return app
